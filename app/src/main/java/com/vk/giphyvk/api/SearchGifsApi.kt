@@ -12,6 +12,8 @@ import retrofit2.http.Query
 
 object RetrofitServices {
 
+    private const val BASE_URL = "https://api.giphy.com"
+
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
@@ -23,13 +25,14 @@ object RetrofitServices {
            .addInterceptor(HttpLoggingInterceptor().also{ it.level = HttpLoggingInterceptor.Level.BODY })
             .build()
         )
-        .baseUrl("https://api.giphy.com")
+        .baseUrl(BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
 
     val searchGifsApi: SearchGifsApi = retrofit.create(
         SearchGifsApi::class.java
     )
+
 }
 
 interface SearchGifsApi {
@@ -37,7 +40,7 @@ interface SearchGifsApi {
      suspend fun getResponseData(@Query("q")request:String, @Query("limit")limit:Int, @Query("offset")offset:Int
        ): ResponseData
 
-     private companion object {
-         private const val YOUR_API_KEY = "op8vEA9OCrBkStShfek8vg6rq7zR1wLl"
+     companion object {
+         const val YOUR_API_KEY = "op8vEA9OCrBkStShfek8vg6rq7zR1wLl"
      }
 }

@@ -32,7 +32,13 @@ class DescriptionFragment : Fragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.id.text = "id = $id"
-        binding.title.text =  "title = $title"
+        binding.id.text = "$ID = $id"
+        binding.title.text =  "$TITLE = $title"
+    }
+
+    companion object {
+
+        const val ID = "id"
+        const val TITLE = "title"
     }
 }

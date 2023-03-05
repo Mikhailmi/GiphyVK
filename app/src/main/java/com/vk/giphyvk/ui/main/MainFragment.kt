@@ -29,9 +29,7 @@ class MainFragment : Fragment() {
     private var job: Job? = null
     private var offset = 0
     private var adapter = GifAdapter { gifImage, string -> onItemClick(gifImage, string) }
-    private var nextButtonVisibility: Int = View.GONE
-    private var previousButtonVisibility: Int = View.GONE
-    private var searchButtonEnabled = false
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,7 +45,7 @@ class MainFragment : Fragment() {
         val searchButton = binding.submit
         val nextButton = binding.next
         val previousButton = binding.back
-        binding.viewModel = viewModel
+        binding.viewModel = viewModel // используется для отображения прогрессбара
         binding.lifecycleOwner = viewLifecycleOwner
         binding.recyclerView.adapter = adapter
         searchButton.isEnabled = searchButtonEnabled
@@ -73,7 +71,7 @@ class MainFragment : Fragment() {
                 for (i in imageListGif.indices) {
                     val gif = imageListGif[i]
                     val images = gif.images
-                    val url = ((images as Map<*, *>)["downsized"] as Map<*, *>)["url"]
+                    val url = ((images as Map<*, *>)[DOWNSIZED] as Map<*, *>)[URL]
                     adapter.imageLink.add(url as String)
                     val arrayList = ArrayList<String>()
                     arrayList.add(gif.id)
@@ -104,7 +102,7 @@ class MainFragment : Fragment() {
                 for (i in imageListGif.indices) {
                     val gif = imageListGif[i]
                     val images = gif.images
-                    val url = ((images as Map<*, *>)["downsized"] as Map<*, *>)["url"]
+                    val url = ((images as Map<*, *>)[DOWNSIZED] as Map<*, *>)[URL]
                     adapter.imageLink.add(url as String)
                     val arrayList = ArrayList<String>()
                     arrayList.add(gif.id)
@@ -138,7 +136,7 @@ class MainFragment : Fragment() {
                 for (i in imageListGif.indices) {
                     val gif = imageListGif[i]
                     val images = gif.images
-                    val url = ((images as Map<*, *>)["downsized"] as Map<*, *>)["url"]
+                    val url = ((images as Map<*, *>)[DOWNSIZED] as Map<*, *>)[URL]
                     adapter.imageLink.add(url as String)
                     val arrayList = ArrayList<String>()
                     arrayList.add(gif.id)
@@ -167,14 +165,18 @@ class MainFragment : Fragment() {
         previousButton.visibility = previousButtonVisibility
     }
 
+    private var nextButtonVisibility: Int = View.GONE
+    private var previousButtonVisibility: Int = View.GONE
+    private var searchButtonEnabled = false
+
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putInt("offset", offset)
-        outState.putInt("nextButtonVisibility", nextButtonVisibility)
-        outState.putInt("previousButtonVisibility", previousButtonVisibility)
-        outState.putBoolean("searchButtonEnabled", searchButtonEnabled)
-        outState.putStringArrayList("imageLink", adapter.imageLink)
+        outState.putInt(OFFSET, offset)
+        outState.putInt(NEXT_BUTTON_VISIBILITY, nextButtonVisibility)
+        outState.putInt(PREVIOUS_BUTTON_VISIBILITY, previousButtonVisibility)
+        outState.putBoolean(SEARCH_BUTTON_ENABLED, searchButtonEnabled)
+        outState.putStringArrayList(IMAGE_LINK, adapter.imageLink)
         for (i in adapter.imageDescription.indices){
-            outState.putStringArrayList("imageDescription$i", adapter.imageDescription[i])
+            outState.putStringArrayList("$IMAGE_DESCRIPTION$i", adapter.imageDescription[i])
         }
         super.onSaveInstanceState(outState)
     }
@@ -183,13 +185,13 @@ class MainFragment : Fragment() {
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         if (savedInstanceState != null) {
-            offset = savedInstanceState.getInt("offset")
-            nextButtonVisibility = savedInstanceState.getInt("nextButtonVisibility")
-            previousButtonVisibility = savedInstanceState.getInt("previousButtonVisibility")
-            searchButtonEnabled = savedInstanceState.getBoolean("searchButtonEnabled")
-            adapter.imageLink = savedInstanceState.getStringArrayList("imageLink") as ArrayList<String>
+            offset = savedInstanceState.getInt(OFFSET)
+            nextButtonVisibility = savedInstanceState.getInt(NEXT_BUTTON_VISIBILITY)
+            previousButtonVisibility = savedInstanceState.getInt(PREVIOUS_BUTTON_VISIBILITY)
+            searchButtonEnabled = savedInstanceState.getBoolean(SEARCH_BUTTON_ENABLED)
+            adapter.imageLink = savedInstanceState.getStringArrayList(IMAGE_LINK) as ArrayList<String>
             for (i in adapter.imageLink.indices){
-                adapter.imageDescription.add(savedInstanceState.getStringArrayList("imageDescription$i")!!)
+                adapter.imageDescription.add(savedInstanceState.getStringArrayList("$IMAGE_DESCRIPTION$i")!!)
             }
         }
     }
@@ -197,8 +199,8 @@ class MainFragment : Fragment() {
     private fun onItemClick(item: String, args: List<String>) {
         parentFragmentManager.commit {
             val bundle = Bundle().apply {
-                putString("id", args[0])
-                putString("title", args[1])
+                putString(ID, args[0])
+                putString(TITLE, args[1])
             }
             replace<DescriptionFragment>(R.id.container, args = bundle)
             addToBackStack(DescriptionFragment::class.java.simpleName)
@@ -207,6 +209,16 @@ class MainFragment : Fragment() {
 
     companion object {
         fun newInstance() = MainFragment()
+        const val DOWNSIZED = "downsized"
+        const val URL = "url"
+        const val OFFSET = "offset"
+        const val NEXT_BUTTON_VISIBILITY = "nextButtonVisibility"
+        const val PREVIOUS_BUTTON_VISIBILITY = "previousButtonVisibility"
+        const val SEARCH_BUTTON_ENABLED = "searchButtonEnabled"
+        const val IMAGE_LINK = "imageLink"
+        const val IMAGE_DESCRIPTION = "imageDescription"
+        const val ID = "id"
+        const val TITLE = "title"
     }
 
     override fun onDestroyView() {
