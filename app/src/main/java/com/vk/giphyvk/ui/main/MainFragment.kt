@@ -27,9 +27,18 @@ class MainFragment : Fragment() {
     private val viewModel: MainViewModel by viewModels()
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
     private var job: Job? = null
-    private var offset = 0
+
     private var adapter = GifAdapter { gifImage, string -> onItemClick(gifImage, string) }
 
+    // Используются для хранения состояния кнопок при повороте
+    // экрана и возвращения с фрагмента с описанием
+    private var nextButtonVisibility: Int = View.GONE
+    private var previousButtonVisibility: Int = View.GONE
+    private var searchButtonEnabled = false
+
+    // Используется для сохранения номера гифки при повороте
+    // экрана и возвращения с фрагмента с описанием
+    private var offset = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,29 +49,27 @@ class MainFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val editText = binding.message
-        val searchButton = binding.submit
-        val nextButton = binding.next
-        val previousButton = binding.back
-        binding.viewModel = viewModel // используется для отображения прогрессбара
+        // используется для отображения прогрессбара
+        binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
+
         binding.recyclerView.adapter = adapter
-        searchButton.isEnabled = searchButtonEnabled
+        binding.submit.isEnabled = searchButtonEnabled
+
         if (adapter.imageLink.isNotEmpty()) {
             for (i in adapter.imageLink.indices){
             adapter.notifyItemChanged(i)
             }
         }
-        editText.addTextChangedListener {
-            searchButton.isEnabled = editText.text?.isNotEmpty()!!
-            searchButtonEnabled = editText.text?.isNotEmpty()!!
+        binding.message.addTextChangedListener {
+            binding.submit.isEnabled = binding.message.text?.isNotEmpty()!!
+            searchButtonEnabled = binding.message.text?.isNotEmpty()!!
         }
 
-        searchButton.setOnClickListener {
+        binding.submit.setOnClickListener {
             job?.cancel()
             job = scope.launch {
-                val response = viewModel.onButtonClicked(editText.text.toString(), 25, 0)
+                val response = viewModel.onButtonClicked(binding.message.text.toString(), 25, 0)
                 val imageListGif = response.data
                 if (adapter.imageLink.isNotEmpty()) {
                     adapter.imageLink.clear()
@@ -81,19 +88,19 @@ class MainFragment : Fragment() {
                     adapter.notifyItemChanged(i)
                 }
                 if (response.pagination.total_count > 25) {
-                    nextButton.visibility = View.VISIBLE
+                    binding.next.visibility = View.VISIBLE
                     nextButtonVisibility = View.VISIBLE
                 }
-                previousButton.visibility = View.GONE
+                binding.back.visibility = View.GONE
                 previousButtonVisibility = View.GONE
             }
         }
 
-        nextButton.setOnClickListener {
+        binding.next.setOnClickListener {
             job?.cancel()
             job = scope.launch {
                 offset += 25
-                val response = viewModel.onButtonClicked(editText.text.toString(), 25, offset)
+                val response = viewModel.onButtonClicked(binding.message.text.toString(), 25, offset)
                 val imageListGif = response.data
                 if (adapter.imageLink.isNotEmpty()) {
                     adapter.imageLink.clear()
@@ -112,22 +119,22 @@ class MainFragment : Fragment() {
                     adapter.notifyItemChanged(i)
                 }
                 if (response.pagination.total_count > (offset + 25)) {
-                    nextButton.visibility = View.VISIBLE
+                    binding.next.visibility = View.VISIBLE
                     nextButtonVisibility = View.VISIBLE
                 } else {
-                    nextButton.visibility = View.GONE
+                    binding.next.visibility = View.GONE
                     nextButtonVisibility = View.GONE
                 }
-                previousButton.visibility = View.VISIBLE
+                binding.back.visibility = View.VISIBLE
                 previousButtonVisibility = View.VISIBLE
             }
         }
 
-        previousButton.setOnClickListener {
+        binding.back.setOnClickListener {
             job?.cancel()
             job = scope.launch {
                 offset -= 25
-                val response = viewModel.onButtonClicked(editText.text.toString(), 25, offset)
+                val response = viewModel.onButtonClicked(binding.message.text.toString(), 25, offset)
                 val imageListGif = response.data
                 if (adapter.imageLink.isNotEmpty()) {
                     adapter.imageLink.clear()
@@ -146,10 +153,10 @@ class MainFragment : Fragment() {
                     adapter.notifyItemChanged(i)
                 }
                 if (offset >= 25) {
-                    previousButton.visibility = View.VISIBLE
+                    binding.back.visibility = View.VISIBLE
                     previousButtonVisibility = View.VISIBLE
                 } else {
-                    previousButton.visibility = View.GONE
+                    binding.back.visibility = View.GONE
                     previousButtonVisibility = View.GONE
                 }
                 nextButtonVisibility = View.VISIBLE
@@ -164,10 +171,6 @@ class MainFragment : Fragment() {
         nextButton.visibility = nextButtonVisibility
         previousButton.visibility = previousButtonVisibility
     }
-
-    private var nextButtonVisibility: Int = View.GONE
-    private var previousButtonVisibility: Int = View.GONE
-    private var searchButtonEnabled = false
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putInt(OFFSET, offset)

@@ -40,4 +40,9 @@ class DescriptionFragment : Fragment(){
         const val ID = "id"
         const val TITLE = "title"
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }
