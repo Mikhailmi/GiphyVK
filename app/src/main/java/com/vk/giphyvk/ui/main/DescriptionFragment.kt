@@ -17,8 +17,8 @@ class DescriptionFragment : Fragment(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            id = it.getString("id")
-            title = it.getString("title")
+            id = it.getString(ID)
+            title = it.getString(TITLE)
         }
     }
     override fun onCreateView(
@@ -37,7 +37,6 @@ class DescriptionFragment : Fragment(){
     }
 
     companion object {
-
         const val ID = "id"
         const val TITLE = "title"
     }
